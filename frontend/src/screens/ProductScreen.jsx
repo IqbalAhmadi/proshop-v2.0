@@ -11,7 +11,7 @@ const ProductScreen = () => {
   return (
     <>
       <Link to="/" className="btn btn-light my-3">
-        ⬅️
+        Back
       </Link>
       <Row>
         <Col md={5}>
