@@ -1,7 +1,9 @@
 {
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@babel/plugin-transform-private-property-in-object": "^7.24.7"
+    "@babel/plugin-transform-private-property-in-object": "^7.24.7",
+    "concurrently": "^9.0.0",
+    "nodemon": "^3.1.4"
   },
   "name": "proshop-v2.0",
   "description": "Welcome to the project. This is an ongoing full stack project. Check back later for completed and deployed version.",
@@ -38,7 +40,10 @@
     "yallist": "^3.1.1"
   },
   "scripts": {
-    "start": "node backend/server.js"
+    "start": "node backend/server.js",
+    "server": "nodemon backend/server.js",
+    "client": "npm start --prefix frontend",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "repository": {
     "type": "git",
