@@ -19,7 +19,8 @@ router.get(
     if (product) {
       return res.send(product)
     }
-    res.status(404).send({ message: 'Product not found 😔' })
+    res.status(404)
+    throw new Error('Resource not found')
   })
 ) // GET /api/products/:id
 
