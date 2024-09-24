@@ -32,6 +32,7 @@
     "js-tokens": "^4.0.0",
     "jsesc": "^2.5.2",
     "json5": "^2.2.3",
+    "jsonwebtoken": "^9.0.2",
     "lru-cache": "^5.1.1",
     "mongoose": "^8.6.2",
     "ms": "^2.1.3",
