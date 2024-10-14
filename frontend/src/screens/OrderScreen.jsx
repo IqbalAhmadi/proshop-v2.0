@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   Row,
@@ -9,9 +10,16 @@ import {
   Card,
   ListGroupItem,
 } from 'react-bootstrap'
+import { toast } from 'react-toastify'
+import { useSelector } from 'react-redux'
+import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
-import { useGetOrderDetailsQuery } from '../slices/ordersApiSlice'
+import {
+  useGetOrderDetailsQuery,
+  usePayOrderMutation,
+  useGetPaypalClientIdQuery,
+} from '../slices/ordersApiSlice'
 
 const OrderScreen = () => {
   const { id: orderId } = useParams()
@@ -21,6 +29,40 @@ const OrderScreen = () => {
     isLoading,
     error,
   } = useGetOrderDetailsQuery(orderId)
+
+  const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation()
+
+  const [{ isPending }, paypalDispatch] = usePayPalScriptReducer()
+
+  
+  const {
+    data: paypal,
+    isLoading: loadingPayPal,
+    error: errorPayPal,
+  } = useGetPaypalClientIdQuery()
+  
+  const { userInfo } = useSelector((state) => state.auth)
+
+  useEffect(() => {
+    if (!errorPayPal && !loadingPayPal && paypal.clientId) {
+      const loadPayPalScript = async () => {
+        paypalDispatch({
+          type: 'resetOptions',
+          value: {
+            'client-id': paypal.clientId,
+            currency: 'USD',
+          },
+        })
+        paypalDispatch({ type: 'setLoadingStatus', value: 'pending' })
+      }
+      if (order && !order.isPaid) {
+        if (!window.paypal) {
+          loadPayPalScript()
+        }
+      }
+    }
+  }, [order, paypal, paypalDispatch, loadingPayPal, errorPayPal])
+
 
   return isLoading ? (
     <Loader />
@@ -89,39 +131,37 @@ const OrderScreen = () => {
           </ListGroup>
         </Col>
         <Col md={4}>
-              <Card>
-                <ListGroup variant='flush'>
-                    <ListGroup.Item>
-                        <h2>Order Summary</h2>
-                    </ListGroup.Item>
+          <Card>
+            <ListGroup variant="flush">
+              <ListGroup.Item>
+                <h2>Order Summary</h2>
+              </ListGroup.Item>
 
-                    <ListGroup.Item>
-                        <Row>
-                            <Col>Items:</Col>
-                            <Col>${order.itemsPrice}</Col>
-                        </Row>
+              <ListGroup.Item>
+                <Row>
+                  <Col>Items:</Col>
+                  <Col>${order.itemsPrice}</Col>
+                </Row>
 
-                        <Row>
-                            <Col>Shipping:</Col>
-                            <Col>${order.shippingPrice}</Col>
-                        </Row>
+                <Row>
+                  <Col>Shipping:</Col>
+                  <Col>${order.shippingPrice}</Col>
+                </Row>
 
-                        <Row>
-                            <Col>Tax:</Col>
-                            <Col>${order.taxPrice}</Col>
-                        </Row>
+                <Row>
+                  <Col>Tax:</Col>
+                  <Col>${order.taxPrice}</Col>
+                </Row>
 
-                        <Row>
-                            <Col>Total:</Col>
-                            <Col>${order.totalPrice}</Col>
-                        </Row>
-
-                    </ListGroup.Item>
-                    {/* PAY ORDER PLACEHOLDER */}
-                    {/* MARK AS DELIVERED PLACEHOLDER */}
-
-                </ListGroup>
-              </Card>
+                <Row>
+                  <Col>Total:</Col>
+                  <Col>${order.totalPrice}</Col>
+                </Row>
+              </ListGroup.Item>
+              {/* PAY ORDER PLACEHOLDER */}
+              {/* MARK AS DELIVERED PLACEHOLDER */}
+            </ListGroup>
+          </Card>
         </Col>
       </Row>
     </>
