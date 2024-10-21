@@ -1,13 +1,6 @@
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import {
-  Row,
-  Col,
-  ListGroup,
-  Image,
-  Button,
-  Card,
-} from 'react-bootstrap'
+import { Row, Col, ListGroup, Image, Button, Card } from 'react-bootstrap'
 import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux'
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'
@@ -31,17 +24,17 @@ const OrderScreen = () => {
 
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation()
 
-  const [deliverOrder, {isLoading: loadingDeliver}] = useDeliverOrderMutation()
+  const [deliverOrder, { isLoading: loadingDeliver }] =
+    useDeliverOrderMutation()
 
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer()
 
-  
   const {
     data: paypal,
     isLoading: loadingPayPal,
     error: errorPayPal,
   } = useGetPaypalClientIdQuery()
-  
+
   const { userInfo } = useSelector((state) => state.auth)
 
   useEffect(() => {
@@ -67,7 +60,7 @@ const OrderScreen = () => {
   function onApprove(data, actions) {
     return actions.order.capture().then(async function (details) {
       try {
-        await payOrder({orderId, details})
+        await payOrder({ orderId, details }).unwrap()
         refetch()
         toast.success('Payment successful')
       } catch (err) {
@@ -87,17 +80,19 @@ const OrderScreen = () => {
   }
 
   function createOrder(data, actions) {
-    return actions.order.create({
-      purchase_units: [
-        {
-          amount: {
-            value: order.totalPrice,
+    return actions.order
+      .create({
+        purchase_units: [
+          {
+            amount: {
+              value: order.totalPrice,
+            },
           },
-        },
-      ],
-    }).then((orderId) => {
-      return orderId
-    })
+        ],
+      })
+      .then((orderId) => {
+        return orderId
+      })
   }
 
   const deliverOrderHandler = async () => {
@@ -113,7 +108,7 @@ const OrderScreen = () => {
   return isLoading ? (
     <Loader />
   ) : error ? (
-    <Message variant="danger" />
+    <Message variant="danger">{error?.data?.message || error.error}</Message>
   ) : (
     <>
       <h1>Order {order._id}</h1>
@@ -204,22 +199,28 @@ const OrderScreen = () => {
                   <Col>${order.totalPrice}</Col>
                 </Row>
               </ListGroup.Item>
-              
+
               {!order.isPaid && (
                 <ListGroup.Item>
                   {loadingPay && <Loader />}
 
-                  {isPending ? <Loader /> : (
+                  {isPending ? (
+                    <Loader />
+                  ) : (
                     <div>
                       {/* <Button onClick={onApproveTest} style={{marginBottom: '10px'}}>Test Pay Order</Button> */}
                       <div>
-                        <PayPalButtons createOrder={createOrder} onApprove={onApprove} onError={onError}></PayPalButtons>
+                        <PayPalButtons
+                          createOrder={createOrder}
+                          onApprove={onApprove}
+                          onError={onError}
+                        ></PayPalButtons>
                       </div>
                     </div>
                   )}
                 </ListGroup.Item>
               )}
-              
+
               {loadingDeliver && <Loader />}
               {userInfo.isAdmin && order.isPaid && !order.isDelivered && (
                 <ListGroup.Item>
